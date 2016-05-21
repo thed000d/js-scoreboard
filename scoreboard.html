@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scoreboard</title>
+
+  <style>
+  body  {background-color: black;
+         color: white;
+         -moz-user-select     : none;
+         -khtml-user-select   : none;
+         -webkit-user-select  : none;
+         -o-user-select       : none;
+         user-select          : none;}
+  .time {font-size: 150pt;
+         width: 100%;
+         text-align: center;
+         color: white;
+         font-family: "Courier"}
+  .denver {background-color: #600189}
+  .opponent {background-color: #bf2b2b}
+  .score-box {margin-left: 100px;
+           margin-right: 100px;
+           text-align: center;}
+
+  .name {font-size: 50pt;
+         padding-top: 10pt;}     
+  .score {font-size: 250pt;
+          font-weight: bold;
+          margin: -25px;}  
+
+  table {width: 100%;
+        margin-top: 10px;}    
+  </style>
+
+</head>
+<body>
+  <div class="time"></div>
+  <table>
+    <tr>
+      <td width="50%">
+        <div class="opponent score-box">
+          <div class="name">San Francisco</div>
+          <div class="score">0</div>
+        </div>
+      </td>
+      <td width="50%">
+        <div class="denver score-box">
+          <div class="name">Denver</div>
+          <div class="score">0</div>          
+        </div>
+      </td>
+    </tr>
+  </table>
+
+<script src="jquery-2.2.4.min.js"></script>
+<script>
+//  Simple example of using private variables
+//
+//  To start the stopwatch:
+//    obj.start();
+//
+//  To get the duration in milliseconds without pausing / resuming:
+//    var x = obj.time();
+//
+//  To pause the stopwatch:
+//    var x = obj.stop(); // Result is duration in milliseconds
+//
+//  To resume a paused stopwatch
+//    var x = obj.start();  // Result is duration in milliseconds
+//
+//  To reset a paused stopwatch
+//    obj.stop();
+//
+var clsStopwatch = function() {
+    // Private vars
+    var startAt = 0;  // Time of last start / resume. (0 if not running)
+    var lapTime = 0;  // Time on the clock when last stopped in milliseconds
+
+    var now = function() {
+        return (new Date()).getTime(); 
+      }; 
+ 
+    // Public methods
+    // Start or resume
+    this.start = function() {
+        startAt = startAt ? startAt : now();
+      };
+
+    // Stop or pause
+    this.stop = function() {
+        // If running, update elapsed time otherwise keep it
+        lapTime = startAt ? lapTime + now() - startAt : lapTime;
+        startAt = 0; // Paused
+      };
+
+    // Reset
+    this.reset = function() {
+        lapTime = startAt = 0;
+      };
+
+      this.running = function() {
+        return startAt != 0;
+      };
+
+   // Set
+   // Provide in milliseconds
+   this.set = function(val) {
+      startAt = 0;
+      lapTime = val;
+   };   
+
+    // Duration
+    this.time = function() {
+        return lapTime + (startAt ? now() - startAt : 0); 
+      };
+  };
+
+var x = new clsStopwatch();
+var clocktimer;
+
+function pad(num, size) {
+  var s = "0000" + num;
+  return s.substr(s.length - size);
+}
+
+function formatTime(time) {
+  var h = m = s = ms = 0;
+  var newTime = '';
+
+  m = Math.floor( time / (60 * 1000) );
+  s = Math.floor( (time % (60 * 1000)) / 1000 );
+
+  newTime = pad(m, 2) + ':' + pad(s, 2);
+  return newTime;
+}
+
+
+function update() {
+  $(".time").html(formatTime(x.time()));
+}
+
+function reset() {
+  stop();
+  x.set(5000)
+  update();
+}
+
+$(function() {
+  update();
+});
+
+$(".time").click(function() {
+  if(x.running()) {
+    x.stop();
+    clearInterval(clocktimer);
+  } else {
+    x.start();
+    clocktimer = setInterval("update()", 250);    
+  }
+});
+
+$(".time").contextmenu(function() {
+  time = prompt("Minutes : Seconds");
+  min = parseInt(time.split(":")[0]);
+  sec = parseInt(time.split(":")[1]);
+  min = isNaN(min) ? 0 : min
+  sec = isNaN(sec) ? 0 : sec
+
+  x.set((min*60+sec)*1000);
+  update();
+  return false;
+});
+
+$(".score-box").click(function(ev) {
+  score = parseInt($(this).children(".score").html());
+  $(this).children(".score").html(score+1);
+});
+
+$(".score-box").contextmenu(function(ev) {
+  score = parseInt($(this).children(".score").html());
+  $(this).children(".score").html(score-1);
+  return false;
+});
+</script>  
+</body>
+</html>
